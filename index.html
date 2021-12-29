@@ -1,9 +1,154 @@
- <!DOCTYPE html>
-<html>
-<body>
+<!DOCTYPE html>
+<html lang="en">
 
-<h1>My First Heading</h1>
-<p>My first paragraph.</p>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>BlazorBlazePose</title>
+    <base href="/" />
+    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="BlazorBlazePose.Client.styles.css" rel="stylesheet" />
+    <link href="manifest.json" rel="manifest" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+</head>
+
+<body>
+    <div id="app">Loading...</div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script>navigator.serviceWorker.register('service-worker.js');</script>
+    <!-- Require the peer dependencies of pose-detection. -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+
+    <!-- You must explicitly require a TF.js backend if you're not using the TF.js union bundle. -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+    <script type="text/javascript" src="https://unpkg.com/webcam-easy/dist/webcam-easy.min.js"></script>
+    <script src="_content/Blazor.Extensions.Canvas/blazor.extensions.canvas.js"></script>
+    <script type='text/javascript' src='https://www.gstatic.com/charts/loader.js'></script>
+
+    <script>
+        google.charts.load('current', { packages: ['corechart', 'line'] });
+
+        // draw an empty chart when the page first loads
+        google.charts.setOnLoadCallback(initChart);
+        function initChart() {
+            var xs = [];
+            var ys = [];
+            window.createNewChart({ xs, ys });
+        }
+
+        // draw a new chart given X/Y values
+        window.createNewChart = (params) => {
+            var xs = params.xs.map(date => new Date(date));
+            var ys = params.ys;
+            var data = new google.visualization.DataTable();
+            data.addColumn('date', 'X');
+            data.addColumn('number', 'Y');
+            for (var i = 0; i < ys.length; i++) {
+                data.addRow([xs[i], ys[i]]);
+            }
+            var options = {
+                hAxis: { title: 'Time' },
+                vAxis: { title: 'Bad  <>  Good' },
+                title: 'Pose Plot',
+                legend: { position: 'none' },
+            };
+            var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+            chart.draw(data, options);
+        };
+
+    </script>
+
+    <script>
+        window.playSound = async () => {
+            console.log(document.getElementById('sound'));
+            document.getElementById('sound').play();
+        }
+            window.saveFile = async (file, Content) => {
+                var link = document.createElement('a');
+                link.download = filename;
+                link.href = "data:application/octet-stream;base64," + bytesBase64;
+                document.body.appendChild(link); // Needed for Firefox
+                link.click();
+                document.body.removeChild(link);
+            }
+            window.calcPose = async () => {
+
+                const webcamElement = document.getElementById('webcam');
+                const estimationConfig = { flipHorizontal: false };
+                const timestamp = performance.now();
+                const poses = await detector.estimatePoses(webcamElement, estimationConfig, timestamp);
+                //console.log(poses);
+                //console.log(`Call to doSomething took ${performance.now() - timestamp} milliseconds`)
+                //return first pose
+                return poses[0];
+
+
+            };
+        window.webcamStart = async () => {
+                const webcamElement = document.getElementById('webcam');
+
+                const model = poseDetection.SupportedModels.BlazePose;
+                const detectorConfig = {
+                    runtime: 'tfjs',
+                    enableSmoothing: true,
+                    modelType: 'full'
+                };
+                ;
+                detector = await poseDetection.createDetector(model, detectorConfig);
+                ;
+
+                const canvasElement = document.getElementById('canvas');
+
+            const webcam = new Webcam(webcamElement, 'user', canvasElement, snapSoundElement = null);
+           
+                webcam.start()
+                    .then(async result => {
+                        return await result;
+
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    });
+
+
+            };
+            window.downloadFileFromStream = async (fileName, contentStreamReference) => {
+                const arrayBuffer = await contentStreamReference.arrayBuffer();
+                const blob = new Blob([arrayBuffer]);
+
+                const url = URL.createObjectURL(blob);
+
+                triggerFileDownload(fileName, url);
+
+                URL.revokeObjectURL(url);
+            };
+
+            window.triggerFileDownload = (fileName, url) => {
+                const anchorElement = document.createElement('a');
+                anchorElement.href = url;
+
+                if (fileName) {
+                    anchorElement.download = fileName;
+                }
+
+                anchorElement.click();
+                anchorElement.remove();
+            };
+
+    </script>
+
 
 </body>
-</html> 
+
+</html>
